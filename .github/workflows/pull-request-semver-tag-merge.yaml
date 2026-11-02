@@ -11,8 +11,7 @@ permissions:
   contents: write
 
 concurrency:
-  # One tagging run per merge commit so a release is never dropped when several PRs merge close together.
-  group: ${{ github.workflow }}-${{ github.event.pull_request.merge_commit_sha }}
+  group: ${{ github.workflow }}
   cancel-in-progress: false
 
 jobs:
