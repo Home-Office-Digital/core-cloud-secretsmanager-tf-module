@@ -60,6 +60,55 @@ variable "create_initial_version" {
   default     = null
 }
 
+variable "rotation_enabled" {
+  description = "Whether automatic rotation of the secret is enabled. When true a rotation_lambda_arn is required."
+  type        = bool
+  default     = false
+}
+
+variable "rotation_lambda_arn" {
+  description = "ARN of an existing Lambda rotation function. Required when rotation_enabled is true (v1.0.0 supports Lambda-based rotation only). The required-when-enabled rule is enforced by a precondition on the rotation resource."
+  type        = string
+  default     = null
+  validation {
+    condition     = var.rotation_lambda_arn == null ? true : can(regex("^arn:aws[a-z-]*:lambda:", var.rotation_lambda_arn))
+    error_message = "rotation_lambda_arn must be a Lambda ARN (arn:aws:lambda:...)."
+  }
+}
+
+variable "rotation_rules" {
+  description = "Rotation schedule for the secret. Maps directly to the rotation_rules block of aws_secretsmanager_secret_rotation. automatically_after_days and schedule_expression are mutually exclusive."
+  type = object({
+    automatically_after_days = optional(number)
+    schedule_expression      = optional(string)
+    duration                 = optional(string)
+  })
+  default = null
+}
+
+variable "policy_override" {
+  description = "Full JSON resource policy string. When set to a non-empty string this REPLACES the generated secret policy entirely."
+  type        = string
+  default     = null
+}
+
+variable "read_principals" {
+  description = "List of IAM ARNs granted secretsmanager:GetSecretValue and secretsmanager:DescribeSecret in the generated resource policy."
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for arn in var.read_principals : can(regex("^arn:aws[a-z-]*:iam::[0-9]{12}:", arn))])
+    error_message = "read_principals must be IAM ARNs (arn:aws:iam::<account-id>:...)."
+  }
+}
+
+variable "read_service_principals" {
+  description = "List of AWS service principals (for example monitoring.rds.amazonaws.com) granted the same read permissions in the generated resource policy. For a Lambda reading the secret, grant its execution role via read_principals instead, as requests use the role rather than the service principal."
+  type        = list(string)
+  default     = []
+}
+
 variable "extra_tags" {
   description = "Additional tags applied to the secret. Core Cloud mandatory tags take precedence if keys overlap."
   type        = map(string)
