@@ -7,6 +7,15 @@ provider "aws" {
   skip_metadata_api_check     = true
 }
 
+override_data {
+  target = data.aws_caller_identity.current
+  values = {
+    account_id = "123456789012"
+  }
+}
+
+
+
 run "recovery_window_default_is_30" {
   command = plan
 
