@@ -12,7 +12,4 @@ locals {
 
   # Falls back to the secret name when no description is given.
   description = var.description != null ? var.description : var.name
-
-  # Resolves whether to create the initial version (explicit flag, else inferred from the value).
-  create_initial_version = var.create_initial_version != null ? var.create_initial_version : (var.secret_string != null || var.secret_binary != null)
 }
