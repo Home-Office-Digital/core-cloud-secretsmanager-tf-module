@@ -100,8 +100,12 @@ resource "aws_secretsmanager_secret_rotation" "this" {
 
     # Require a rotation schedule when rotation is enabled.
     precondition {
-      condition     = !var.rotation_enabled || var.rotation_rules != null
-      error_message = "rotation_rules is required when rotation_enabled is true; set automatically_after_days or schedule_expression."
+      condition = !var.rotation_enabled || (
+        var.rotation_rules == null ? false : (
+          (var.rotation_rules.automatically_after_days != null) != (var.rotation_rules.schedule_expression != null)
+        )
+      )
+      error_message = "rotation_rules must specify exactly one of automatically_after_days or schedule_expression when rotation_enabled is true."
     }
   }
 }
